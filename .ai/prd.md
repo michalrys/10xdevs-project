@@ -94,14 +94,25 @@ Description: As a Principal, I want to create a Teacher account and assign it to
 Acceptance Criteria:
 - Given I am on a space page, when I enter Teacher email, name, and assign to space, then account is created and invitation is sent.
 - Given invalid input or duplicate email, then I see an error.
+- Given Principal dashboard where I can see all created spaces, then I can create new Teacher or assigne existing Teacher to some space
 
 #### US-005
 Title: Teacher secure login
 Description: As a Teacher, I want to log in securely with email and password so that I can access my assigned spaces.
 Acceptance Criteria:
-- Given valid credentials, then I am redirected to my dashboard.
+- Given valid credentials, then I am redirected to my dashboard where I can see trip spaces and assigned to spaces other teachers and students.
+- Given valid credentials and view in dashboard, then I can create students to selected space.
 - Given invalid credentials, then I see an error message.
 - Password must be at least 6 characters.
+
+#### US-005a
+Title: Teacher views dedicated space
+Description: As a Teacher, I want to view a dedicated page for a selected space so that I can see its timeline and assigned Trips to that space.
+Acceptance Criteria:
+- Given I am logged in as a Teacher, when I select a space from my dashboard, then I am redirected to that space's detail view.
+- In the space view, I see an interactive timeline of trips and activities for that space.
+- Space view is limited to assigned Teachers and their Students; others cannot access it.
+- Error message is shown if I try to access a space for which I do not have permission.
 
 #### US-006
 Title: Teacher change password
@@ -114,7 +125,8 @@ Acceptance Criteria:
 Title: Create Student account
 Description: As a Teacher, I want to create Student accounts with username, first name, last name, and temporary password so that Students can log in.
 Acceptance Criteria:
-- Given I provide unique username, names, and temp password, then Student account is created.
+- Given Teacher dashboard, then I can see available spaces and assigned students and I can create studends from that view.
+- Given I provide unique username, names, and temp password and assigment to selected space, then Student account is created.
 - Given duplicate username or invalid password, then I see an error.
 
 #### US-008
