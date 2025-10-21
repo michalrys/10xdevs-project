@@ -1,96 +1,129 @@
-# 10x Astro Starter
+# school-trip
 
-Just started - some experiments.
+[![Version](https://img.shields.io/badge/version-0.0.1-blue)](https://github.com/your-org/school-trip/releases) [![License](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
 
-A modern, opinionated starter template for building fast, accessible, and AI-friendly web applications.
+A smartphone-first web application for planning and monitoring school trips in real time. Teachers create and manage trips; Students view trip details; Principals oversee spaces and teachers.  
+
+---
+
+## Table of Contents
+
+1. [Tech Stack](#tech-stack)  
+2. [Getting Started](#getting-started)  
+   - [Prerequisites](#prerequisites)  
+   - [Installation](#installation)  
+   - [Running the App](#running-the-app)  
+3. [Available Scripts](#available-scripts)  
+4. [Project Scope](#project-scope)  
+   - [In Scope (MVP)](#in-scope-mvp)  
+   - [Out of Scope (MVP)](#out-of-scope-mvp)  
+5. [Project Status](#project-status)  
+6. [License](#license)  
+
+---
 
 ## Tech Stack
 
-- [Astro](https://astro.build/) v5.5.5 - Modern web framework for building fast, content-focused websites
-- [React](https://react.dev/) v19.0.0 - UI library for building interactive components
-- [TypeScript](https://www.typescriptlang.org/) v5 - Type-safe JavaScript
-- [Tailwind CSS](https://tailwindcss.com/) v4.0.17 - Utility-first CSS framework
+- **Frontend**:  
+  - Astro 5  
+  - React 19  
+  - TypeScript 5  
+  - Tailwind 4  
+  - Shadcn/ui  
+- **Backend**:  
+  - Supabase (PostgreSQL, Auth)  
+- **CI/CD & Hosting**:  
+  - GitHub Actions  
+  - DigitalOcean (Docker)  
+- **Optional AI Integration**:  
+  - Openrouter.ai (for model orchestration)
 
-## Prerequisites
-
-- Node.js v22.14.0 (as specified in `.nvmrc`)
-- npm (comes with Node.js)
+---
 
 ## Getting Started
 
-1. Clone the repository:
+### Prerequisites
+
+- Node.js v22.14.0 (see `.nvmrc`)  
+- npm (bundled with Node.js)  
+- A Supabase project with URL & anon/public key  
+- (Optional) GitHub CLI for workflows  
+
+### Installation
 
 ```bash
-git clone https://github.com/przeprogramowani/10x-astro-starter.git
-cd 10x-astro-starter
-```
+# 1. Clone the repository
+git clone https://github.com/your-org/school-trip.git
+cd school-trip
 
-2. Install dependencies:
-
-```bash
+# 2. Install dependencies
 npm install
+
+# 3. Configure environment
+# Create a `.env` file at project root:
+#   SUPABASE_URL=your-supabase-url
+#   SUPABASE_ANON_KEY=your-anon-key
+
+# 4. (Optional) Initialize Supabase locally or point to your hosted instance
 ```
 
-3. Run the development server:
+### Running the App
 
 ```bash
+# Start dev server
 npm run dev
 ```
 
-4. Build for production:
+Then open [http://localhost:3000](http://localhost:3000) in your browser.
 
-```bash
-npm run build
-```
+---
 
 ## Available Scripts
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
-- `npm run lint` - Run ESLint
-- `npm run lint:fix` - Fix ESLint issues
+In the project directory, you can run:
 
-## Project Structure
+| Script       | Description                         |
+| ------------ | ----------------------------------- |
+| `npm run dev`      | Start Astro dev server           |
+| `npm run build`    | Build for production             |
+| `npm run preview`  | Preview production build locally |
+| `npm run lint`     | Run ESLint checks                |
+| `npm run lint:fix` | Run ESLint with auto-fix         |
+| `npm run format`   | Format code with Prettier        |
 
-```md
-.
-├── src/
-│   ├── layouts/    # Astro layouts
-│   ├── pages/      # Astro pages
-│   │   └── api/    # API endpoints
-│   ├── components/ # UI components (Astro & React)
-│   └── assets/     # Static assets
-├── public/         # Public assets
-```
+---
 
-## AI Development Support
+## Project Scope
 
-This project is configured with AI development tools to enhance the development experience, providing guidelines for:
+### In Scope (MVP)
 
-- Project structure
-- Coding practices
-- Frontend development
-- Styling with Tailwind
-- Accessibility best practices
-- Astro and React guidelines
+- Principal-driven space & Teacher account creation  
+- Teacher-driven Trip, Day, Point, Attraction & Artifact management  
+- Student & unauthenticated views with proper access controls  
+- Vertical timeline UI for trips & days  
+- Name-based trip filtering  
+- Account lifecycle: temporary passwords, forced change, email reset  
+- Cascading deletion & GDPR-style data anonymization  
 
-### Cursor IDE
+### Out of Scope (MVP)
 
-The project includes AI rules in `.cursor/rules/` directory that help Cursor IDE understand the project structure and provide better code suggestions.
+- Student-initiated account creation/join requests  
+- Alerts, chat, messaging features  
+- Photo uploads & approval workflows  
+- Private messaging between users  
+- Offline support / PWA  
+- AI-driven planning or content generation  
 
-### GitHub Copilot
+---
 
-AI instructions for GitHub Copilot are available in `.github/copilot-instructions.md`
+## Project Status
 
-### Windsurf
+This project is in **MVP development**. Core features for Principals, Teachers, and Students are under active implementation; contributions and feedback are welcome.
 
-The `.windsurfrules` file contains AI configuration for Windsurf.
-
-## Contributing
-
-Please follow the AI guidelines and coding practices defined in the AI configuration files when contributing to this project.
+---
 
 ## License
 
-MIT
+This project is licensed under the [MIT License](./LICENSE).  
+
+---
