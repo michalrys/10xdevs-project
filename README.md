@@ -53,7 +53,7 @@ A smartphone-first web application for planning and monitoring school trips in r
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/your-org/school-trip.git
+git clone https://github.com/michalrys/school-trip.git
 cd school-trip
 
 # 2. Install dependencies
