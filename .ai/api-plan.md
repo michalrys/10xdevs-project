@@ -76,30 +76,34 @@
     ```
 
 - **POST /api/spaces**
-  - Create a new space (Principal only).
+  - Create a new space (Principal only and he becomes the owner of that created space).
   - Request:
     ```json
     { "slug": "string", "description": "string" }
     ```
   - Response 201: `{ "id": "uuid", "slug": "..." }`
 
-- **GET /api/spaces/{space_id}**
+- **GET /api/spaces/{space_slug}**
+  - each space have `slug` defined, so use it here
   - Retrieve space details and related trips.
   - Response 200: JSON space object with `trips` array.
 
-- **PUT /api/spaces/{space_id}**
+- **PUT /api/spaces/{space_slug}**
+  - each space have `slug` defined, so use it here
   - Update space (owner only).
   - Request:
     ```json
     { "description": "string" }
     ```
 
-- **DELETE /api/spaces/{space_id}**
+- **DELETE /api/spaces/{space_slug}**
+  - each space have `slug` defined, so use it here
+  - only space owner
   - Delete space and cascade.
   - Response 204: No content.
 
 ### 2.3 Teachers and Students Assignment
-- **POST /api/spaces/{space_id}/teachers**
+- **POST /api/spaces/{space_slug}/teachers**
   - Assign a teacher to a space.
   - Request: `{ "teacher_id": "uuid" }`
 
@@ -112,11 +116,12 @@
   - Request: `{ "teacher_ids": ["uuid"] }`
 
 ### 2.4 Trips and Calendar
-- **GET /api/spaces/{space_id}/trips**
+- **GET /api/spaces/{space_slug}/trips**
   - List trips with filtering by date.
   - Query: `?start_date=YYYY-MM-DD&end_date=YYYY-MM-DD&page=1&limit=20`
+  - if no parameters are given then print all trips
 
-- **POST /api/spaces/{space_id}/trips**
+- **POST /api/spaces/{space_slug}/trips**
   - Create a new trip (teachers and owners).
   - Request:
     ```json
@@ -124,7 +129,7 @@
     ```
 
 - **GET /api/trips/{trip_id}**
-  - Get trip details including days, points, attractions.
+  - Get trip details including days, points, attractions, attandence and headcounts.
 
 - **PUT /api/trips/{trip_id}**
   - Update trip metadata.
@@ -158,17 +163,27 @@
 ### 2.6 Artifacts (Attendance & Headcount)
 - **POST /api/trip_days/{day_id}/attendance**
   - Record attendance.
+  - Only for Teacher.
   - Request: `{ "attendance": [ {"student_id":"uuid","present":true} ] }`
+
+- **GET /api/trips/{trip_id}/attendances**
+  - Get all attendances for given trip
+  - Only for Teacher.
 
 - **POST /api/trip_days/{day_id}/headcounts**
   - Record headcount.
+  - Only for Teacher.
   - Request: `{ "count": number, "expected_count": number }`
+
+- **GET /api/trips/{trip_id}/headcounts**
+  - Get all headcounts for given trip.
+  - Only for Teacher.
 
 ## 3. Authentication and Authorization
 - **Mechanism:** JWT via Supabase Auth.
 - **Roles:** Enforced via Row-Level Security (RLS) in database.
 - **Access Control:** 
-  - Public (anon) can `GET /spaces`, `GET /trips/{id}` for titles/descriptions.
+  - Public (anon) can `GET /api/spaces`, `GET /api/spaces/{space_slug}`, `GET /api/spaces/{space_slug}/trips`, `GET /api/trips/{trip_id}` for titles/descriptions.
   - Authenticated users must supply `Authorization: Bearer <token>` for protected endpoints.
   - Owners, teachers, and students scoped by RLS policies.
 
