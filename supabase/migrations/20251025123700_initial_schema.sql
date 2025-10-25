@@ -66,6 +66,7 @@ comment on table space_teachers is 'Junction table linking teachers to spaces';
 -- Trips table
 create table trips (
   id uuid primary key default gen_random_uuid(),
+  owner_id uuid not null references users(id) on delete cascade,
   space_id uuid not null references spaces(id) on delete cascade,
   title varchar(255) not null,
   description text,
@@ -89,8 +90,7 @@ create table trip_days (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   deleted_at timestamptz,
-  unique(trip_id, date),
-  check (date between (select start_date from trips where id = trip_id) and (select end_date from trips where id = trip_id))
+  unique(trip_id, date)
 );
 
 comment on table trip_days is 'Individual days within a trip';
@@ -208,6 +208,50 @@ create trigger set_timestamp_attractions
 before update on attractions
 for each row execute function update_timestamps();
 
+-- Validation triggers
+
+-- Ensure space owner is a teacher or admin
+create or replace function validate_space_owner()
+returns trigger as $$
+declare
+  owner_role user_role;
+begin
+  select role into owner_role from users where id = new.owner_id;
+  
+  if owner_role not in ('teacher', 'admin', 'principal') then
+    raise exception 'Space owner must be a teacher, principal or admin';
+  end if;
+  
+  return new;
+end;
+$$ language plpgsql;
+
+create trigger space_owner_validation
+before insert or update on spaces
+for each row execute function validate_space_owner();
+
+-- Ensure trip day date is within trip date range
+create or replace function validate_trip_day_date()
+returns trigger as $$
+declare
+  trip_start_date date;
+  trip_end_date date;
+begin
+  select start_date, end_date into trip_start_date, trip_end_date 
+  from trips where id = new.trip_id;
+  
+  if new.date < trip_start_date or new.date > trip_end_date then
+    raise exception 'Trip day date must be within the trip date range';
+  end if;
+  
+  return new;
+end;
+$$ language plpgsql;
+
+create trigger trip_day_date_validation
+before insert or update on trip_days
+for each row execute function validate_trip_day_date();
+
 -- Create search vector update triggers
 create or replace function update_users_search_vector()
 returns trigger as $$
@@ -290,44 +334,49 @@ alter table headcounts enable row level security;
 
 -- Users policies
 create policy "Users can view their own profiles"
-on users for select
+on users 
+for select
 to authenticated
 using (id = auth.uid());
 
 create policy "Users can update their own profiles"
-on users for update
+on users 
+for update
 to authenticated
 using (id = auth.uid())
 with check (id = auth.uid());
 
 -- Spaces policies
-create policy "Spaces are visible to owners and teachers"
-on spaces for select
-to authenticated
-using (
-  owner_id = auth.uid() or 
-  exists (select 1 from space_teachers where space_id = spaces.id and teacher_id = auth.uid())
-);
+-- Spaces are visible to any user, logged and not logged (public access)
+create policy "Spaces are visible to anon users"
+on spaces 
+for select
+to anon
+using (true);
 
 create policy "Spaces can be created by authenticated users"
-on spaces for insert
+on spaces 
+for insert
 to authenticated
 with check (owner_id = auth.uid());
 
 create policy "Spaces can be updated by owners"
-on spaces for update
+on spaces 
+for update
 to authenticated
 using (owner_id = auth.uid())
 with check (owner_id = auth.uid());
 
 create policy "Spaces can be deleted by owners"
-on spaces for delete
+on spaces 
+for delete
 to authenticated
 using (owner_id = auth.uid());
 
 -- Space teachers policies
 create policy "Space teachers entries can be viewed by space owners and teachers"
-on space_teachers for select
+on space_teachers 
+for select
 to authenticated
 using (
   exists (select 1 from spaces where id = space_teachers.space_id and owner_id = auth.uid()) or
@@ -335,32 +384,42 @@ using (
 );
 
 create policy "Space teachers entries can be created by space owners"
-on space_teachers for insert
+on space_teachers 
+for insert
 to authenticated
 with check (
   exists (select 1 from spaces where id = space_teachers.space_id and owner_id = auth.uid())
 );
 
 create policy "Space teachers entries can be deleted by space owners"
-on space_teachers for delete
+on space_teachers 
+for delete
 to authenticated
 using (
   exists (select 1 from spaces where id = space_teachers.space_id and owner_id = auth.uid())
 );
 
 -- Trips policies
-create policy "Trips are visible to space owners, teachers, and participants"
-on trips for select
-to authenticated
-using (
-  exists (select 1 from spaces where id = trips.space_id and owner_id = auth.uid()) or
-  exists (select 1 from space_teachers where space_id = trips.space_id and teacher_id = auth.uid()) or
-  exists (select 1 from trip_teachers where trip_id = trips.id and teacher_id = auth.uid()) or
-  exists (select 1 from trip_students where trip_id = trips.id and student_id = auth.uid())
-);
+create policy "Trips titles are visible to anonymous users"
+on trips 
+for select
+to anon
+using (true);
+
+-- create policy "Trips are visible to space owners, teachers, and participants"
+-- on trips
+-- for select
+-- to authenticated
+-- using (
+--   exists (select 1 from spaces where id = trips.space_id and owner_id = auth.uid()) or
+--   exists (select 1 from space_teachers where space_id = trips.space_id and teacher_id = auth.uid()) or
+--   exists (select 1 from trip_teachers where trip_id = trips.id and teacher_id = auth.uid()) or
+--   exists (select 1 from trip_students where trip_id = trips.id and student_id = auth.uid())
+-- );
 
 create policy "Trips can be created by space owners and teachers"
-on trips for insert
+on trips 
+for insert
 to authenticated
 with check (
   exists (select 1 from spaces where id = trips.space_id and owner_id = auth.uid()) or
@@ -368,7 +427,8 @@ with check (
 );
 
 create policy "Trips can be updated by space owners and teachers"
-on trips for update
+on trips 
+for update
 to authenticated
 using (
   exists (select 1 from spaces where id = trips.space_id and owner_id = auth.uid()) or
@@ -381,11 +441,12 @@ with check (
   exists (select 1 from trip_teachers where trip_id = trips.id and teacher_id = auth.uid())
 );
 
-create policy "Trips can be deleted by space owners"
-on trips for delete
+create policy "Trips can be deleted only by trip owner"
+on trips
+for delete
 to authenticated
 using (
-  exists (select 1 from spaces where id = trips.space_id and owner_id = auth.uid())
+  trips.owner_id = auth.uid()
 );
 
 -- Additional similar RLS policies for other tables would go here
